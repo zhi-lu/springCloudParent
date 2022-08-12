@@ -1,0 +1,138 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch TrendTradingBackTestApplication",
+            "request": "launch",
+            "mainClass": "com.luzhi.thread.TrendTradingBackTestApplication",
+            "projectName": "trend-trading-back-test-service"
+        },
+        {
+            "type": "java",
+            "name": "Launch IndexDataApplication",
+            "request": "launch",
+            "mainClass": "com.luzhi.thread.IndexDataApplication",
+            "projectName": "index-data-service"
+        },
+        {
+            "type": "java",
+            "name": "Launch ThirdPartIndexDataApplication",
+            "request": "launch",
+            "mainClass": "com.luzhi.thread.ThirdPartIndexDataApplication",
+            "projectName": "third-part-index-data-project"
+        },
+        {
+            "type": "java",
+            "name": "Launch IndexConfigApplication",
+            "request": "launch",
+            "mainClass": "com.luzhi.thread.IndexConfigApplication",
+            "projectName": "index-config-service"
+        },
+        {
+            "type": "java",
+            "name": "Launch IndexCodesServiceApplication",
+            "request": "launch",
+            "mainClass": "com.luzhi.thread.IndexCodesServiceApplication",
+            "projectName": "index-codes-service"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-EurekaServerApplication<eureka-server>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.EurekaServerApplication",
+            "projectName": "eureka-server",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ThirdPartIndexUpdateApplication<third-part-index-data-update-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.ThirdPartIndexUpdateApplication",
+            "projectName": "third-part-index-data-update-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IndexTurbineApplication<index-turbine>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.IndexTurbineApplication",
+            "projectName": "index-turbine",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IndexHystrixApplication<index-hystrix-dashboard>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.IndexHystrixApplication",
+            "projectName": "index-hystrix-dashboard",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IndexGatherStoreApplication<index-gather-store-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.IndexGatherStoreApplication",
+            "projectName": "index-gather-store-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IndexGatewayApplication<index-gateway-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.IndexGatewayApplication",
+            "projectName": "index-gateway-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TrendTradingBackTestViewApplication<trend-trading-backtest-view>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.TrendTradingBackTestViewApplication",
+            "projectName": "trend-trading-backtest-view",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-Test<trend-trading-back-test-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.Test",
+            "projectName": "trend-trading-back-test-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-TestRun<index-codes-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.luzhi.thread.TestRun",
+            "projectName": "index-codes-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

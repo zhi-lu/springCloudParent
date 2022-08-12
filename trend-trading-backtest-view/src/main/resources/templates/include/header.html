@@ -1,0 +1,105 @@
+<!--suppress ALL -->
+<template th:fragment="html(title)">
+    <script src="js/jquery/2.0.0/jquery.min.js"></script>
+    <link href="css/bootstrap/3.3.6/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap/3.3.6/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="js/axios/0.17.1/axios.min.js"></script>
+    <script src="js/bootstrap/3.3.6/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datepicker/1.8.0/bootstrap-datepicker.min.js"></script>
+    <script src="js/bootstrap-datepicker/1.8.0/bootstrap-datepicker.zh-CN.min.js"></script>
+    <script src="js/chartjs/2.8.0/chart.min.js"></script>
+    <script src="js/vue/2.5.16/vue.min.js"></script>
+
+    <!--suppress JSUnusedGlobalSymbols -->
+    <script>
+        /**
+         * @desc 格式化金额
+         * <p>
+         * @author apple
+         * @version js1.7
+         * // TODO : 2021/7/23
+         * @param num 要格式化的金额
+         */
+        function formatMoney(num) {
+            num = String(num);
+            num = num.toString().replace(/\$|, /g, '')
+            if (isNaN(num)) {
+                num = "0";
+            }
+            let sign = (Number(num) === (num = Math.abs(num)))
+            num = Math.floor(num * 100 + 0.50000000001);
+            let cents = num % 100
+            num = Math.floor(num / 100).toString()
+            if (cents < 10) {
+                cents = "0" + cents;
+            }
+            for (let i = 0; i < Math.floor((num.length - (1 + i)) / 3); i++) {
+                num = num.substring(0, num.length - (4 * i + 3)) + "," + num.substring(num.length - (4 * i + 3));
+            }
+            return (((sign) ? "" : "-") + num + "." + cents);
+        }
+
+        /**
+         * @desc 格式化数字
+         * <p>
+         * @author apple
+         * @version js 1.7
+         * // TODO : 2021/7/21
+         * @param number 要格式化的数字
+         * @param decimals 保留几位小数
+         * @param decimal_point 小数点
+         * @param thousands_specific 千分位符号
+         */
+        function formatNumber(number, decimals, decimal_point, thousands_specific) {
+            number = (number + '').replace(/[^0-9+-Ee.]/g, '');
+            let num = !isFinite(+number) ? 0 : +number;
+            let pre = !isFinite(+decimals) ? 0 : Math.abs(decimals);
+            let specific = (typeof thousands_specific) === 'undefined' ? "," : thousands_specific;
+            let point = (typeof decimal_point) === 'undefined' ? "." : decimal_point;
+            let string;
+            let toFixedFix = function (num, pre) {
+                let k = Math.pow(10, pre);
+                return '' + Math.ceil(num * k) / k;
+            }
+            string = (pre ? toFixedFix(num, pre) : '' + Math.round(num)).split(".");
+            let reg = /(-?\d+)(\d{3})/;
+            while (reg.test(string[0])) {
+                string[0] = string[0].replace(reg, "$1" + specific + "$2");
+            }
+            if ((string[1] || '').length < pre) {
+                string[1] = string[1] || '';
+                string[1] += Array(pre - string[1].length + 1).join('0');
+            }
+            return string.join(point);
+        }
+
+        // 格式金额筛选器
+        Vue.filter("formatMoneyFilter", function (value) {
+            return formatMoney(value);
+        })
+        // 格式数字筛选器
+        Vue.filter("formatNumberFilter", function (value, decimals) {
+            if (decimals === null) {
+                decimals = 0
+            }
+            return formatNumber(value, decimals, ".", ",");
+
+        })
+        // 格式日期筛选器
+        Vue.filter("formatDateFilter", function (value, formatReg) {
+            if (value === null) {
+                return "";
+            }
+            formatReg = formatReg || "YYYY-MM-DD";
+            return moment(value).format(formatReg);
+        })
+    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="type">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!--suppress ThymeleafVariablesResolveInspection -->
+    <title th:text="${title}"></title>
+</template>

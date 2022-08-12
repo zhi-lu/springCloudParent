@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+
+<!--suppress ALL -->
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:include="include/header::html('趋势投资模拟回测')">
+</head>
+<body>
+<!--suppress JSUnresolvedVariable -->
+<script>
+    let chart4Profit = null
+    $(function () {
+        let data4Vue = {
+            // 股票指数代码数组 {code:'', name:''}
+            indexes: [],
+            currentIndex: '000300',
+
+            // 存放股票数据数组
+            indexDatas: [],
+            // 交易日数组
+            dates: [],
+
+            // 收盘价数组
+            closePoints: [],
+            // 存放Profit类数据的数组
+            profits: [],
+            // 存放Profit类中Value的数组。
+            profitValue: [],
+            // 存放Trade class data of array.
+            trades: [],
+
+            years: 0,
+            indexIncomeTotal: 0,
+            indexIncomeAnnual: 0,
+            trendIncomeTotal: 0,
+            trendIncomeAnnual: 0,
+
+            winCount: 0,
+            lossCount: 0,
+            averageWinRate: 0,
+            averageLossRate: 0,
+            // 从服务器返回的每年收益数组
+            annualProfits: [],
+            // 年数组，图表里的横轴
+            annuals: [],
+            // 指数投资收益数组，图表里的纵轴
+            indexIncomes: [],
+            // 趋势投资收益数组，图表里的纵轴
+            trendIncomes: [],
+            // 是否更新数据
+            flushDate: true,
+
+            indexStartDate: null,
+            indexEndDate: null,
+
+            stringStartDate: null,
+            stringEndDate: null,
+
+            movingAverage: 20,
+            // 购买Rate 和 出售Rate
+            buyRate: 1.05,
+            sellRate: 0.95,
+            // 收取的服务费 Rate
+            serviceChargeRate: 0.0,
+        }
+        let vue = new Vue({
+            el: '#workingArea',
+            data: data4Vue,
+            mounted: function () {
+                this.init();
+                $("[data-toggle='tooltip']").tooltip();
+            },
+            methods: {
+                init: function () {
+                    let url = "http://127.0.0.1:8031/api-code/codes";
+                    axios.get(url).then(function (response) {
+                        vue.indexes = response.data;
+                        vue.$nextTick(function () {
+                            vue.simulate();
+                        })
+                    })
+                },
+                simulate: function () {
+                    let url = "http://127.0.0.1:8031/back-test/simulate/" + vue.currentIndex + "/" + vue.movingAverage + "/" + vue.buyRate + "/" + vue.sellRate + "/" + vue.serviceChargeRate + "/" + vue.stringStartDate + "/" + vue.stringEndDate + "/";
+                    axios.get(url).then(function (response) {
+                        // 清空原数据
+                        vue.indexDatas = []
+                        vue.dates = []
+                        vue.closePoints = []
+                        vue.profits = []
+                        vue.profitValue = []
+                        vue.trades = []
+                        vue.annualProfits = []
+                        vue.annuals = []
+                        vue.indexIncomes = []
+                        vue.trendIncomes = []
+                        // 返回原数据
+                        vue.indexDatas = response.data.indexDatas;
+                        vue.trades = response.data.trades;
+                        vue.dates = Array();
+                        vue.closePoints = Array();
+
+                        // 日期
+                        vue.indexStartDate = response.data.indexStartDate;
+                        vue.indexEndDate = response.data.indexEndDate;
+
+                        // 收益
+                        vue.profits = response.data.profits;
+                        vue.annualProfits = response.data.annualProfits;
+                        // 获取收益比率数据.
+                        vue.years = response.data.years;
+                        vue.indexIncomeTotal = response.data.indexIncomeTotal;
+                        vue.indexIncomeAnnual = response.data.indexIncomeAnnual;
+                        vue.trendIncomeTotal = response.data.trendIncomeTotal;
+                        vue.trendIncomeAnnual = response.data.trendIncomeAnnual;
+
+                        // 交易统计
+                        vue.winCount = response.data.winCount;
+                        vue.lossCount = response.data.lossCount;
+                        vue.averageWinRate = response.data.averageWinRate;
+                        vue.averageLossRate = response.data.averageLossRate;
+                        // 指数数据
+                        for (let i in vue.indexDatas) {
+                            let indexData = vue.indexDatas[i]
+                            vue.dates.push(indexData.date)
+                            vue.closePoints.push(indexData.closePoint)
+                            let profit = vue.profits[i]
+                            vue.profitValue.push(profit.value);
+                        }
+                        //  计算出图表需要的横纵和纵轴数据
+                        for (let j in vue.annualProfits) {
+                            let annualProfit = vue.annualProfits[j];
+                            vue.annuals.push(annualProfit.year);
+                            vue.indexIncomes.push(annualProfit.indexIncome * 100);
+                            vue.trendIncomes.push(annualProfit.trendIncome * 100);
+                        }
+
+                        // 收益图标
+                        chart4Profit.config.data.labels = vue.dates;
+                        chart4Profit.config.data.datasets[0].label = vue.currentIndex;
+                        chart4Profit.config.data.datasets[0].data = vue.closePoints;
+                        chart4Profit.config.data.datasets[1].data = vue.profitValue;
+                        chart4Profit.update();
+
+                        chart4AnnualIncome.config.data.labels = vue.annuals;
+                        chart4AnnualIncome.config.data.datasets[0].label = vue.currentIndex;
+                        chart4AnnualIncome.config.data.datasets[0].data = vue.indexIncomes;
+                        chart4AnnualIncome.config.data.datasets[1].data = vue.trendIncomes;
+                        chart4AnnualIncome.update();
+                        if (vue.flushDate) {
+                            vue.updateDate();
+                        }
+                    })
+                },
+                // 不需要刷新日期
+                changeParam: function () {
+                    vue.flushDate = false;
+                    vue.simulate();
+                },
+                // 新增切换函数。
+                changeParamWithFlushDate: function () {
+                    vue.flushDate = true;
+                    vue.stringStartDate = null;
+                    vue.stringEndDate = null;
+                    vue.simulate();
+                },
+                updateDate: function () {
+                    vue.stringStartDate = vue.indexStartDate;
+                    vue.stringEndDate = vue.indexEndDate;
+
+                    $('#date4Start').datepicker("destroy");
+                    $('#date4Start').datepicker({
+                        "format": "yyyy-mm-dd",
+                        "language": "zh-CN",
+                        autoclose: true,
+                        stringStartDate: vue.indexStartDate,
+                        stringEndDate: vue.indexEndDate,
+                    }).on("changeDate", function (e) {
+                        let month = (e.date.getMonth() + 1)
+                        if (month < 10) {
+                            month = '0' + month;
+                        }
+                        let day = (e.date.getDate())
+                        if (day < 10) {
+                            day = '0' + day;
+                        }
+                        vue.stringStartDate = e.date.getFullYear() + "-" + month + "-" + day;
+                        if (!vue.checkDateRange()) {
+                            $('#date4Start').datepicker('update', vue.indexStartDate);
+                            return;
+                        }
+
+                        vue.changeParam();
+                    });
+                    $('#date4End').datepicker("destroy");
+                    $('#date4End').datepicker({
+                        "format": "yyyy-mm-dd",
+                        "language": "zh-CN",
+                        autoclose: true,
+                        stringStartDate: vue.indexStartDate,
+                        stringEndDate: vue.indexEndDate,
+                    }).on("changeDate", function (e) {
+                        let month = (e.date.getMonth() + 1)
+                        if (month < 10) {
+                            month = '0' + month;
+                        }
+                        let day = (e.date.getDate())
+                        if (day < 10) {
+                            day = '0' + day;
+                        }
+                        vue.stringEndDate = e.date.getFullYear() + "-" + month + "-" + day;
+                        if (!vue.checkDateRange()) {
+                            $('#date4End').datepicker('update', vue.indexEndDate);
+                            return;
+                        }
+                        vue.changeParam();
+                    });
+                    $('#date4Start').datepicker('update', vue.indexStartDate);
+                    $('#date4End').datepicker('update', vue.indexEndDate);
+                },
+                checkDateRange: function () {
+                    if (vue.stringStartDate == null || vue.stringEndDate == null) {
+                        return true;
+                    }
+                    let stringStartDate = vue.stringStartDate.replace(/-/g, '/');
+                    let stringStartTime = new Date(stringStartDate).getTime();
+                    let stringEndDate = vue.stringEndDate.replace(/-/g, '/');
+                    let stringEndTime = new Date(stringEndDate).getTime();
+                    if (stringEndTime < stringStartTime) {
+                        window.alert("结束时间不能小于开始时间");
+                        return false;
+                    }
+                    return true;
+                }
+
+            }
+        });
+        let ctx4Profit = $(".canvas4Profit")[0].getContext('2d');
+        chart4Profit = new Chart(ctx4Profit, {
+            // 类型为:line 曲线图
+            type: 'line',
+            data: {
+                labels: '',
+                datasets: [
+                    {
+                        label: '',
+                        data: [],
+                        borderColor: '#FFC0CB',
+                        backgroundColor: '#FFC0CB',
+                        pointRadius: 0,
+                        fill: false,
+                        lineTension: 0
+                    },
+                    {
+                        label: '趋势投资',
+                        data: [],
+                        borderColor: '#00FFFF',
+                        backgroundColor: '#00FFFF',
+                        borderWidth: 1.2,
+                        pointRadius: 0,
+                        fill: false,
+                        lineTension: 0
+                    }
+                ]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: '指数趋势投资收益对比图',
+                },
+                responsive: true,
+                responsiveAnimationDuration: 3000,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: false
+                        }
+                    }]
+                },
+                tooltips: {
+                    intersect: false,
+                    mode: 'index',
+                    axis: 'y',
+                    callbacks: {
+                        label: function (tooltipItem, myData) {
+                            let label = myData.datasets[tooltipItem.datasetIndex].label || ' ';
+                            if (label) {
+                                label += ': '
+                            }
+                            label += parseFloat(tooltipItem.value).toFixed(2);
+                            return label;
+                        }
+                    }
+                }
+            }
+        });
+        let ctx4AnnualIncome = $('.canvas4AnnualIncome')[0].getContext('2d');
+        chart4AnnualIncome = new Chart(ctx4AnnualIncome, {
+            type: 'bar',
+            data: {
+                labels: '',
+                datasets: [
+                    {
+                        label: '',
+                        data: [],
+                        borderColor: '#FFC0CB',
+                        backgroundColor: '#FFC0CB',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: false,
+                        lineTension: 0
+                    },
+                    {
+                        label: '趋势投资',
+                        data: [],
+                        borderColor: '#00FFFF',
+                        backgroundColor: '#00FFFF',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: false,
+                        lineTension: 0
+                    }
+                ]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: '指数/趋势收益分布对比图',
+                },
+                responsive: true,
+                responsiveAnimationDuration: 3000,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                        }
+                    }]
+                },
+                tooltips: {
+                    intersect: false,
+                    mode: 'index',
+                    callbacks: {
+                        label: function (tooltipItem, myData) {
+                            let label = myData.datasets[tooltipItem.datasetIndex].label || ' ';
+                            if (label) {
+                                label += ': '
+                            }
+                            label += parseFloat(tooltipItem.value).toFixed(2);
+                            label += "%"
+                            return label;
+                        }
+                    }
+                }
+            }
+        })
+    })
+</script>
+<style>
+    table.inputTable {
+        width: 100%;
+    }
+
+    table.inputTable td {
+        padding: 20px 20px;
+    }
+
+    table {
+        margin: 20px;
+    }
+
+    div#workingArea {
+        margin: 50px;
+    }
+</style>
+<div id="workingArea">
+    <span class="label label-info" style="font-family: 'Kaiti SC'">回测参数</span>
+    <table class="inputTable">
+        <tr>
+            <td width="25%">
+                    <span data-toggle="tooltip" data-placement="top" title="请选择某一个指数进行回测处理">
+                        <span style="color: lightpink; font-family: 'Kaiti SC'; font-size: 17px">请选择指数:</span>
+                    </span>
+            </td>
+            <td width="25%">
+                <!--suppress HtmlFormInputWithoutLabel -->
+                <select @change="changeParamWithFlushDate" v-model="currentIndex" class="indexSelect form-control">
+                    <option v-for="bean in indexes" :value="bean.code">{{bean.name}} - ({{bean.code}})</option>
+                </select>
+            </td>
+            <td width="25%"></td>
+            <td width="25%"></td>
+        </tr>
+        <tr>
+            <td>
+                <span data-toggle="tooltip" data-placement="top"
+                      title="MA即moving average,移动均线的意思。比如MA20就表示20日均线，取最近20天的值的平均数">
+                    <span style="color: lightpink; font-family: 'Kaiti SC'; font-size: 17px">MA(均线):</span>
+                </span>
+            </td>
+            <td>
+                <select class="form-control" @change="changeParam" v-model="movingAverage">
+                    <option value="5">5日</option>
+                    <option value="10">10日</option>
+                    <option value="15">15日</option>
+                    <option value="20">20日</option>
+                    <option value="30">30日</option>
+                    <option value="60">60日</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span data-toggle="tooltip" data-placement="top"
+                      title="当前值大于均线,说明上升趋势来了,就可以购买,或者再稍等等比均线多5%再下手那么购买阈值就是 1.05">
+                    <span style="color: lightpink; font-family: 'Kaiti SC'; font-size: 17px">购买阀值:</span>
+                </span>
+            </td>
+            <td>
+                <select class="form-control" @change="changeParam" v-model="buyRate">
+                    <option v-for="i in 9" :value="i/100 + 1">{{i / 100 + 1 | formatNumberFilter(2)}}</option>
+                </select>
+            </td>
+            <td>
+                <span data-toggle="tooltip" data-placement="top"
+                      title="当前值低于均线,说明下跌趋势来了,就可以出售,或者再稍等等,比最近的高点低 5%,那么购买阈值就是0.95">
+                    <span style="color: lightpink; font-family: 'Kaiti SC'; font-size: 17px">出售阀值:</span>
+                </span>
+            </td>
+            <td>
+                <select class="form-control" @change="changeParam" v-model="sellRate">
+                    <option v-for="j in 10" :value="1 - j / 100">{{1 - j / 100 | formatNumberFilter(2)}}</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span data-toggle="tooltip" data-placement="top"
+                      title="每一笔交易都会有手续费,一般说来手续费都不高,千分之1.5的左右,默认是没有计算手续费的.">
+                     <span style="color: lightpink; font-family: 'Kaiti SC'; font-size: 17px">手续费:</span>
+                </span>
+            </td>
+            <td>
+                <select class="form-control" @change="changeParam" v-model="serviceChargeRate">
+                    <option value="0.000">手续费:无</option>
+                    <option value="0.001">手续费:0.1%</option>
+                    <option value="0.0015">手续费:0.15%</option>
+                    <option value="0.002">手续费:0.2%</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span data-toggle="tooltip" data-placement="top" title="指定模拟回测的开始日期，默认是当前指数最开始的日期">
+                    <span style="color: pink; font-family: 'Kaiti SC'; font-size: 20px">开始时间:</span>
+                </span>
+            </td>
+            <td>
+                <div class="form-group">
+                    <div class="input-group date" id="date4Start">
+                        <!--suppress HtmlFormInputWithoutLabel -->
+                        <input type="text" readonly="readonly" class="form-control">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span data-toggle="tooltip" data-placement="top" title="指定模拟回测的结束日期，默认是当前指数最后的日期">
+                     <span style="color: pink; font-family: 'Kaiti SC'; font-size: 20px">结束时间:</span>
+                </span>
+            </td>
+            <td>
+                <div class="form-group">
+                    <div class="input-group date" id="date4End">
+                        <!--suppress HtmlFormInputWithoutLabel -->
+                        <input type="text" readonly="readonly" class="form-control">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div class="label label-warning">收益对比图</div>
+    <div class="div4chart" style="margin: 0 auto; width: 80%">
+        <canvas class="canvas4Profit"></canvas>
+    </div>
+    <div class="label label-warning">收益一览</div>
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+        <th>投资类型</th>
+        <th>投资时长 (单位:年)</th>
+        <th>20000元投资收益</th>
+        <th>总收益率</th>
+        <th>总年化率</th>
+        </thead>
+        <tbody>
+        <tr>
+            <td>指数投资</td>
+            <td>{{years|formatNumberFilter(2)}}</td>
+            <td>{{(indexIncomeTotal + 1) * 20000 | formatMoneyFilter}}</td>
+            <td>{{indexIncomeTotal * 100 | formatNumberFilter(2)}}%</td>
+            <td>{{indexIncomeAnnual * 100 | formatNumberFilter(2)}}%</td>
+        </tr>
+        <tr>
+            <td>趋势投资</td>
+            <td>{{years|formatNumberFilter(2)}}</td>
+            <td>{{(trendIncomeTotal + 1) * 20000 | formatMoneyFilter}}</td>
+            <td>{{trendIncomeTotal * 100 | formatNumberFilter(2)}}%</td>
+            <td>{{trendIncomeAnnual * 100 | formatNumberFilter(2)}}%</td>
+        </tr>
+        <tr>
+            <td>相对投资</td>
+            <td>n/a</td>
+            <td>{{(trendIncomeTotal - indexIncomeTotal) * 20000 | formatMoneyFilter}}</td>
+            <td>{{(trendIncomeTotal - indexIncomeTotal) * 100 | formatNumberFilter(2)}}%</td>
+            <td>{{(trendIncomeAnnual - indexIncomeAnnual) * 100 | formatNumberFilter(2)}}%</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="label label-warning">交易统计</div>
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+        <th align="center" colspan="2">趋势投资盈亏情况</th>
+        </thead>
+        <tbody>
+        <tr>
+            <td width="50%">总共交易次数</td>
+            <td>{{winCount + lossCount}}</td>
+        </tr>
+        <tr>
+            <td>盈利交易次数</td>
+            <td>{{winCount}}</td>
+        </tr>
+        <tr>
+            <td>平均盈利比率</td>
+            <td>{{averageWinRate * 100 | formatNumberFilter(2)}}%</td>
+        </tr>
+        <tr>
+            <td>亏损交易次数</td>
+            <td>{{lossCount}}</td>
+        </tr>
+        <tr>
+            <td>平均亏损比率</td>
+            <td>{{averageLossRate * 100 | formatNumberFilter(2)}}%</td>
+        </tr>
+        <tr>
+            <td>胜率</td>
+            <td>{{(winCount / (winCount + lossCount)) * 100 | formatNumberFilter(2)}}%</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="label label-warning">收益分布对比表</div>
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+        <th>年份</th>
+        <th>指数收益</th>
+        <th>趋势投资收益</th>
+        </thead>
+        <tbody>
+        <tr v-for="bean in annualProfits">
+            <td>{{bean.year}}</td>
+            <td>{{bean.indexIncome * 100| formatNumberFilter(2)}}%</td>
+            <td>{{bean.trendIncome * 100| formatNumberFilter(2)}}%</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="label label-warning">收益分布对比图</div>
+    <div div class="div4chart" style="margin: 0 auto; width: 80%">
+        <canvas class="canvas4AnnualIncome"></canvas>
+    </div>
+
+    <div class="label label-warning"> 交易明细</div>
+    <table class="table table-striped table-bordered table-condensed table-hover">
+        <thead>
+        <th>盈/亏</th>
+        <th>购买日期</th>
+        <th>购买盘点</th>
+        <th>出售日期</th>
+        <th>出售盘点</th>
+        <th>盈亏比率</th>
+        <th>20000元投资收益</th>
+        </thead>
+        <tbody>
+        <tr v-for="bean in trades">
+            <td>
+                <span v-if="bean.sellClosePoint > bean.buyClosePoint" class="label label-danger">盈利</span>
+                <span v-if="bean.buyClosePoint >= bean.sellClosePoint" class="label label-success">亏损</span>
+            </td>
+            <td>
+                {{bean.buyDate}}
+            </td>
+            <td>
+                {{bean.buyClosePoint}}
+            </td>
+            <td>
+                {{bean.sellDate}}
+            </td>
+            <td>
+                <span v-if="bean.sellClosePoint === 0">n/a</span>
+                <span v-if="bean.sellClosePoint !== 0">{{bean.sellClosePoint}}</span>
+            </td>
+            <td>
+                <span v-if="bean.sellClosePoint === 0">n/a</span>
+                <span class="label"
+                      v-bind:class="{'label-danger': bean.sellClosePoint > bean.buyClosePoint, 'label-success': bean.sellClosePoint <= bean.buyClosePoint }"
+                      v-if="bean.sellClosePoint !== 0">{{(bean.sellClosePoint - bean.buyClosePoint) * 100 / bean.buyClosePoint | formatNumberFilter(2)}}%</span>
+            </td>
+            <td>
+                <span v-if="bean.sellClosePoint === 0">n/a</span>
+                <span v-if="bean.sellClosePoint !== 0">{{bean.rate * 20000 | formatMoneyFilter}}</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="include/footer::html"></div>
+</body>
+</html>

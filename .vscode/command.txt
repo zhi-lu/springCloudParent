@@ -1,0 +1,9 @@
+'D:\OpenJdk\jdk1.8\bin\java.exe' '-cp' 'C:\Users\zhilu\AppData\Local\Temp\cp_8qoe96jdtrtd2h6t06aoqlrbi.jar' 'com.luzhi.thread.IndexCodesServiceApplication' 
+
+'D:\OpenJdk\jdk1.8\bin\java.exe' '-Dspring.jmx.enabled=true' '-Dspring.application.admin.enabled=true' '-Dspring.boot.project.name=index-config-service' '-cp' 'C:\Users\zhilu\AppData\Local\Temp\cp_ba0vn7rcsxw8b9m5tnfg95tgl.jar' 'com.luzhi.thread.IndexConfigApplication' 
+
+'D:\OpenJdk\jdk1.8\bin\java.exe' '-cp' 'C:\Users\zhilu\AppData\Local\Temp\cp_d8md97qpea5ohopsd4o7dgoey.jar' 'com.luzhi.thread.IndexDataApplication' 
+
+'D:\OpenJdk\jdk1.8\bin\java.exe' '-cp' 'C:\Users\zhilu\AppData\Local\Temp\cp_dfefy8kq1c01zsx3esii12kyx.jar' 'com.luzhi.thread.ThirdPartIndexDataApplication' 
+
+'D:\OpenJdk\jdk1.8\bin\java.exe' '-Dspring.jmx.enabled=true' '-Dspring.application.admin.enabled=true' '-Dspring.boot.project.name=trend-trading-back-test-service' '-cp' 'C:\Users\zhilu\AppData\Local\Temp\cp_3avgoscdhrd92hpytq6jzj4sg.jar' 'com.luzhi.thread.TrendTradingBackTestApplication' 

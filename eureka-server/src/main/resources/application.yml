@@ -1,0 +1,16 @@
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      # 翻译:把http://localhost/port/eureka作为自己的服务器.
+      defaultZone: "http://${eureka.instance.hostname}:${server.port}/eureka/"
+
+spring:
+  application:
+    name: eureka-server
+  output:
+    ansi:
+      enabled: always

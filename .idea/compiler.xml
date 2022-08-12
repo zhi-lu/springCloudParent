@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="trend-trading-back-test-view" />
+        <module name="third-part-index-data-update-service" />
+        <module name="eureka-server" />
+        <module name="index-turbine" />
+        <module name="index-gather-store-service" />
+        <module name="index-gateway-service" />
+        <module name="index-hystrix-dashboard" />
+        <module name="trend-trading-backtest-view" />
+        <module name="index-codes-service" />
+        <module name="index-config-service" />
+        <module name="third-part-index-data-project" />
+        <module name="trend-trading-back-test-service" />
+        <module name="index-data-service" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="springCloudChild" target="1.7" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="eureka-server" options="-parameters" />
+      <module name="index-codes-service" options="-parameters" />
+      <module name="index-config-service" options="-parameters" />
+      <module name="index-data-service" options="-parameters" />
+      <module name="index-gateway-service" options="-parameters" />
+      <module name="index-gather-store-service" options="-parameters" />
+      <module name="index-hystrix-dashboard" options="-parameters" />
+      <module name="index-turbine" options="-parameters" />
+      <module name="springCloudChild" options="-parameters" />
+      <module name="third-part-index-data-project" options="-parameters" />
+      <module name="third-part-index-data-update-service" options="-parameters" />
+      <module name="trend-trading-back-test-service" options="-parameters" />
+      <module name="trend-trading-back-test-view" options="-parameters" />
+      <module name="trend-trading-backtest-view" options="-parameters" />
+    </option>
+  </component>
+</project>

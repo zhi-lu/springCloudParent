@@ -1,0 +1,11 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.luzhi.thread.config.RedisConfiguration",
+      "name": "spring.cache.redis",
+      "type": "com.luzhi.thread.config.RedisConfiguration"
+    }
+  ],
+  "properties": []
+}

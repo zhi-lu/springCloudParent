@@ -1,0 +1,15 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+
+spring:
+  application:
+    name: index-config-service
+  cloud:
+    config:
+      label: master
+      server:
+        git:
+          uri: https://github.com/zhi-lu/trendConfigFile
+          search-paths: config

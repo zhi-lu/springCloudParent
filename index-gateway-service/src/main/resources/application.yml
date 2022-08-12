@@ -1,0 +1,28 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+spring:
+  application:
+    name: index-gateway-service
+  zipkin:
+    base-url: http://localhost:9411
+
+ribbon:
+  ReadTimeout: 20000
+  SocketTimeout: 60000
+
+zuul:
+  routes:
+    api-a:
+      path: /api-code/**
+      serviceId: INDEX-CODES-SERVICE
+
+    api-b:
+      path: /back-test/**
+      serviceId: trend-trading-back-test-service
+
+    api-c:
+      path: /api-view/**
+      serviceId: trend-trading-backtest-view
+
