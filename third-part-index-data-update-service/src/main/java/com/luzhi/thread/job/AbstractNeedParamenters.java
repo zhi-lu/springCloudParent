@@ -22,9 +22,9 @@ public abstract class AbstractNeedParamenters extends Thread {
     private static final int INIT_SIGNAL_CHAR_NUMBER = 1;
 
     /**
-     * 初始化自旋程序自旋的个数为15
+     * 初始化自旋程序自旋的个数为10
      */
-    private static final int INIT_SPINING_LOCK_NUMBER = 15;
+    private static final int INIT_SPINING_LOCK_NUMBER = 10;
 
     /**
      * 兼容Mac系统的字符串
