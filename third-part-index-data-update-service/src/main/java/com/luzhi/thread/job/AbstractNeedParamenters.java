@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author zhilu
@@ -18,49 +19,54 @@ public abstract class AbstractNeedParamenters extends Thread {
     /**
      * 初始信号量文件的内容为1个字符.
      */
-    public static final int INIT_SIGNAL_CHAR_NUMBER = 1;
+    private static final int INIT_SIGNAL_CHAR_NUMBER = 1;
+
+    /**
+     * 初始化自旋程序自旋的个数为15
+     */
+    private static final int INIT_SPINING_LOCK_NUMBER = 15;
 
     /**
      * 兼容Mac系统的字符串
      */
-    public static final String MAC_OS_X = "Mac";
+    protected static final String MAC_OS_X = "Mac";
 
     /**
      * 兼容Windows系统字符串
      */
-    public static final String WINDOWS = "Win";
+    protected static final String WINDOWS = "Win";
 
     /**
      * 兼容LINUX系统的字符串
      */
-    public static final String LINUX = "Lin";
+    protected static final String LINUX = "Lin";
 
     /**
      * 存放信号量的文件名.<p>{使用信号量机制来解决多语言脚本运行的串行问题}</p>
      */
-    public static final String SINGAL_FILE_NAME = "signal.txt";
+    private static final String SINGAL_FILE_NAME = "signal.txt";
 
     /**
      * python 脚本获取数据成功的信号量
      */
-    public static final String PYTHON_GAIN_DATA_SUCCESS = "gainSuccess";
+    protected static final String PYTHON_GAIN_DATA_SUCCESS = "gainSuccess";
 
     /**
      * cpp 脚本对原始“json”数据格式化成功的信号量
      */
-    public static final String CPP_SCRIPT_SUCCESS = "replaceSuccess";
+    protected static final String CPP_SCRIPT_SUCCESS = "replaceSuccess";
 
     /**
      * python 脚本移动数据成功
      */
-    public static final String PYTHON_MOVE_DATA_SUCCESS = "moveSuccess";
+    protected static final String PYTHON_MOVE_DATA_SUCCESS = "moveSuccess";
 
     /**
      * 获取当前操作系统的类型
      * <p>
      * 使用的方法为{@link System#getProperty(String)}.
      */
-    public static final String SYSTEM_TYPE = System.getProperty("os.name");
+    protected static final String SYSTEM_TYPE = System.getProperty("os.name");
 
 
     /**
@@ -69,9 +75,10 @@ public abstract class AbstractNeedParamenters extends Thread {
      * @param singalSuccess 脚本执行的信号量.例如{@link AbstractNeedParamenters#CPP_SCRIPT_SUCCESS}.
      * @param seconds       自旋挂起未能执行进入阻塞队列的再处理的秒数.
      */
-    @SuppressWarnings("BusyWait")
+    @SuppressWarnings({"BusyWait", "AlibabaCountDownShouldInFinally"})
     public static void singalRun(String singalSuccess, int seconds) {
         String filePath = returnPath() + SINGAL_FILE_NAME;
+        CountDownLatch latch = new CountDownLatch(INIT_SPINING_LOCK_NUMBER);
         for (; ; ) {
             try {
                 File file = new File(filePath);
@@ -87,9 +94,14 @@ public abstract class AbstractNeedParamenters extends Thread {
                         System.exit(1);
                     }
                 }
+                // 每次自旋后倒计时计数器每次减一
+                latch.countDown();
                 reader.close();
                 // 自旋锁,每隔指定秒数进行处理.
-                Thread.sleep(seconds * 1000L);
+                if (latch.getCount() == 0){
+                    Thread.sleep(seconds * 1000L);
+                    latch = new CountDownLatch(INIT_SPINING_LOCK_NUMBER);
+                }
             } catch (Exception exception) {
                 exception.printStackTrace();
                 System.err.println("异常信息:" + exception.getMessage());
